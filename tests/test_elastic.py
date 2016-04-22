@@ -19,3 +19,9 @@ def test_random_port(elasticsearch_random):
     """Tests if elasticsearch fixture can be started on random port"""
     assert elasticsearch_random.cluster.health()['status'] == 'green'
 
+
+def test_index_creation(elasticsearch):
+    name = 'mytestindex'
+    elasticsearch.indices.create(index=name)
+    assert name in elasticsearch.indices.get_settings().keys()
+
