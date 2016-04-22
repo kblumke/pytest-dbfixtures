@@ -28,7 +28,7 @@ from pytest_dbfixtures.port import get_port
 def elasticsearch_proc(host='127.0.0.1', port=9201, cluster_name=None,
                        network_publish_host='127.0.0.1',
                        discovery_zen_ping_multicast_enabled=False,
-                       index_store_type='memory', logs_prefix=''):
+                       index_store_type=None, logs_prefix=''):
     """
     Creates elasticsearch process fixture.
 
@@ -49,8 +49,7 @@ def elasticsearch_proc(host='127.0.0.1', port=9201, cluster_name=None,
     :param bool discovery_zen_ping_multicast_enabled: whether to enable or
         disable host discovery
         http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/modules-discovery-zen.html
-    :param str index_store_type: index.store.type setting. *memory* by default
-        to speed up tests
+    :param str index_store_type: index.store.type setting.
     :param str logs_prefix: prefix for log filename
     """
     @pytest.fixture(scope='session')
@@ -71,6 +70,10 @@ def elasticsearch_proc(host='127.0.0.1', port=9201, cluster_name=None,
         work_path = '/tmp/elasticsearch_{0}_tmp'.format(elasticsearch_port)
         cluster = cluster_name or 'dbfixtures.{0}'.format(elasticsearch_port)
         multicast_enabled = str(discovery_zen_ping_multicast_enabled).lower()
+        if index_store_type is not None:
+            index_store_type_option = '--index.store.type={}'.format(index_store_type)
+        else:
+            index_store_type_option = ''
 
         command_exec = '''
             {deamon} -p {pidfile} --http.port={port}
@@ -80,7 +83,7 @@ def elasticsearch_proc(host='127.0.0.1', port=9201, cluster_name=None,
             --cluster.name={cluster}
             --network.publish_host='{network_publish_host}'
             --discovery.zen.ping.multicast.enabled={multicast_enabled}
-            --index.store.type={index_store_type}
+            {index_store_type_option}
             '''.format(
             deamon=config.elasticsearch.deamon,
             pidfile=pidfile,
@@ -91,8 +94,7 @@ def elasticsearch_proc(host='127.0.0.1', port=9201, cluster_name=None,
             cluster=cluster,
             network_publish_host=network_publish_host,
             multicast_enabled=multicast_enabled,
-            index_store_type=index_store_type
-
+            index_store_type_option=index_store_type_option
         )
 
         elasticsearch_executor = HTTPExecutor(
