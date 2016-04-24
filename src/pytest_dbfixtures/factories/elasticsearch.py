@@ -71,7 +71,9 @@ def elasticsearch_proc(host='127.0.0.1', port=9201, cluster_name=None,
         cluster = cluster_name or 'dbfixtures.{0}'.format(elasticsearch_port)
         multicast_enabled = str(discovery_zen_ping_multicast_enabled).lower()
         if index_store_type is not None:
-            index_store_type_option = '--index.store.type={}'.format(index_store_type)
+            index_store_type_option = '--index.store.type={}'.format(
+                index_store_type
+            )
         else:
             index_store_type_option = ''
 
