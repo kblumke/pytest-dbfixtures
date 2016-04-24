@@ -75,7 +75,13 @@ def elasticsearch_proc(host='127.0.0.1', port=9201, cluster_name=None,
                 index_store_type
             )
         else:
-            index_store_type_option = ''
+            elasticsearch, _ = try_import('elasticsearch', request)
+            if elasticsearch.__version__[0] < 2:
+                index_store_type_option = '--index.store.type={}'.format(
+                    'memory'
+                )
+            else:
+                index_store_type_option = ''
 
         command_exec = '''
             {deamon} -p {pidfile} --http.port={port}
