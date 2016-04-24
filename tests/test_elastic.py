@@ -21,7 +21,7 @@ def test_random_port(elasticsearch_random):
 
 
 def test_index_creation(elasticsearch):
+    """Tests if index creation via elasticsearch fixture succeeds"""
     name = 'mytestindex'
     elasticsearch.indices.create(index=name)
     assert name in elasticsearch.indices.get_settings().keys()
-
