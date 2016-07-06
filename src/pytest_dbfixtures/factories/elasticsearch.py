@@ -15,6 +15,7 @@
 
 # You should have received a copy of the GNU Lesser General Public License
 # along with pytest-dbfixtures.  If not, see <http://www.gnu.org/licenses/>.
+import os
 import shutil
 
 import pytest
@@ -70,17 +71,15 @@ def elasticsearch_proc(host='127.0.0.1', port=9201, cluster_name=None,
         work_path = '/tmp/elasticsearch_{0}_tmp'.format(elasticsearch_port)
         cluster = cluster_name or 'dbfixtures.{0}'.format(elasticsearch_port)
         multicast_enabled = str(discovery_zen_ping_multicast_enabled).lower()
-        es_version = try_import('elasticsearch', request)[0].__version__[0]
-        if not index_store_type and es_version < 2:
-            store_type = 'memory'
-        else:
-            store_type = index_store_type
+        conf_path = home_path + '_scripts'
+        if os.path.exists(conf_path) is False:
+            os.mkdir(conf_path)
 
         command_exec = '''
             {deamon} -p {pidfile} --http.port={port}
             --path.home={home_path}  --default.path.logs={logs_path}
             --default.path.work={work_path}
-            --default.path.conf=/etc/elasticsearch
+            --default.path.conf={conf_dir}
             --cluster.name={cluster}
             --network.publish_host='{network_publish_host}'
             --discovery.zen.ping.multicast.enabled={multicast_enabled}
@@ -95,7 +94,8 @@ def elasticsearch_proc(host='127.0.0.1', port=9201, cluster_name=None,
             cluster=cluster,
             network_publish_host=network_publish_host,
             multicast_enabled=multicast_enabled,
-            index_store_type=store_type
+            index_store_type=index_store_type,
+            conf_dir=conf_path
         )
 
         elasticsearch_executor = HTTPExecutor(
@@ -110,6 +110,7 @@ def elasticsearch_proc(host='127.0.0.1', port=9201, cluster_name=None,
         def finalize_elasticsearch():
             elasticsearch_executor.stop()
             shutil.rmtree(home_path)
+            shutil.rmtree(conf_path)
 
         request.addfinalizer(finalize_elasticsearch)
         return elasticsearch_executor
